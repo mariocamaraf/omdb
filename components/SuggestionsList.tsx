@@ -14,7 +14,7 @@ export default function SuggestionsList({
   if (!showSuggestions || !suggestions || suggestions.length === 0) {
     return null
   }
-
+console.log("test")
   return (
     <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
       {suggestions.map((title) => (
