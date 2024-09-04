@@ -1,12 +1,13 @@
 'use client'
 
+import React, { FC, memo, useMemo } from 'react'
 import { Movie } from './MovieList'
 
 interface MovieCardProps {
   movie: Movie
 }
+export const MovieCard: FC<MovieCardProps> = memo(({ movie }) => {
 
-export default function MovieCard({ movie }: MovieCardProps) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
       {movie.Poster && movie.Poster !== "N/A" && (
@@ -21,4 +22,4 @@ export default function MovieCard({ movie }: MovieCardProps) {
       </p>
     </div>
   )
-}
+})

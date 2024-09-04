@@ -1,7 +1,11 @@
-// app/page.tsx
 import { getClient } from '@/lib/apollo-server'
 import { gql } from '@apollo/client'
-import MovieList from '@/components/MovieList'
+import dynamic from 'next/dynamic'
+import { Suspense } from 'react'
+
+const MovieList = dynamic(() => import('@/components/MovieList'), {
+  loading: () => <p>Loading...</p>,
+})
 
 const INITIAL_MOVIES = gql`
   query InitialMovies {
@@ -21,5 +25,10 @@ const INITIAL_MOVIES = gql`
 
 export default async function Home() {
   const { data } = await getClient().query({ query: INITIAL_MOVIES })
-  return <MovieList initialMovies={data.searchMovies.Search} />
+  
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MovieList initialMovies={data.searchMovies.Search} />
+    </Suspense>
+  )
 }
