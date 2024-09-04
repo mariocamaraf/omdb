@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, FormEvent, useEffect } from 'react'
-import { useQuery, useLazyQuery, gql } from '@apollo/client'
+import { useQuery, gql } from '@apollo/client'
 import { Loader2 } from 'lucide-react'
 import SearchForm from './SearchForm'
 import MovieCard from './MovieCard'
@@ -47,11 +47,14 @@ const GET_SUGGESTIONS = gql`
   }
 `
 
-export default function MovieList() {
-  const [filters, setFilters] = useState<FilterState>({ title: '', year: '' })
+export default function MovieList({ initialMovies }: { initialMovies: Movie[] }) {
+  const [filters, setFilters] = useState<FilterState>({ title: 'inception', year: '' })
   const [showSuggestions, setShowSuggestions] = useState(false)
 
-  const [searchMovies, { data, loading, error }] = useLazyQuery<{ searchMovies: SearchResult }>(SEARCH_MOVIES)
+  const { data, loading, error } = useQuery<{ searchMovies: SearchResult }>(SEARCH_MOVIES, {
+    variables: { title: filters.title, year: filters.year },
+    skip: !filters.title
+  })
 
   const { data: suggestionData, loading: suggestionsLoading } = useQuery<{ suggestions: string[] }>(GET_SUGGESTIONS, {
     variables: { value: filters.title },
@@ -67,16 +70,12 @@ export default function MovieList() {
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault()
-    if (filters.title) {
-      searchMovies({ variables: { title: filters.title, year: filters.year } })
-    }
     setShowSuggestions(false)
   }
 
   const handleSuggestionSelect = (title: string) => {
     setFilters(prev => ({ ...prev, title }))
     setShowSuggestions(false)
-    searchMovies({ variables: { title, year: filters.year } })
   }
 
   useEffect(() => {
@@ -88,6 +87,8 @@ export default function MovieList() {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
+
+  const movies = data?.searchMovies.Search || initialMovies
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
@@ -109,12 +110,12 @@ export default function MovieList() {
         <div className="text-center text-red-500">An error occurred while fetching movies.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data?.searchMovies.Search?.map((movie) => (
+          {movies.map((movie) => (
             <MovieCard key={movie.imdbID} movie={movie} />
           ))}
         </div>
       )}
-      {data?.searchMovies.Search?.length === 0 && filters.title && (
+      {movies.length === 0 && filters.title && (
         <div className="text-center text-gray-500 mt-8">No movies found matching your criteria.</div>
       )}
     </div>

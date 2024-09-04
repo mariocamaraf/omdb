@@ -1,9 +1,25 @@
-'use client'
+// app/page.tsx
+import { getClient } from '@/lib/apollo-server'
+import { gql } from '@apollo/client'
+import MovieList from '@/components/MovieList'
 
-import dynamic from 'next/dynamic'
+const INITIAL_MOVIES = gql`
+  query InitialMovies {
+    searchMovies(title: "inception", page: 1) {
+      Search {
+        imdbID
+        Title
+        Year
+        Type
+        Poster
+      }
+      totalResults
+      Response
+    }
+  }
+`
 
-const App = dynamic(() => import('@/components/App'), { ssr: false })
-
-export default function Home() {
-  return <App />
+export default async function Home() {
+  const { data } = await getClient().query({ query: INITIAL_MOVIES })
+  return <MovieList initialMovies={data.searchMovies.Search} />
 }
