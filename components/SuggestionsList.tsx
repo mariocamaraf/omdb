@@ -6,15 +6,11 @@ interface SuggestionsListProps {
   onSuggestionSelect: (title: string) => void
 }
 
-export default function SuggestionsList({
-  showSuggestions,
-  suggestions,
-  onSuggestionSelect
-}: SuggestionsListProps) {
+export default function SuggestionsList({ showSuggestions, suggestions, onSuggestionSelect }: SuggestionsListProps) {
   if (!showSuggestions || !suggestions || suggestions.length === 0) {
     return null
   }
-console.log("test")
+  console.log('test')
   return (
     <div className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
       {suggestions.map((title) => (

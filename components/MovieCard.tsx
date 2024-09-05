@@ -7,10 +7,9 @@ interface MovieCardProps {
   movie: Movie
 }
 export const MovieCard: FC<MovieCardProps> = memo(({ movie }) => {
-
   return (
     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-      {movie.Poster && movie.Poster !== "N/A" && (
+      {movie.Poster && movie.Poster !== 'N/A' && (
         <img src={movie.Poster} alt={movie.Title} className="w-full h-64 object-cover mb-4 rounded" />
       )}
       <h2 className="text-xl font-semibold mb-2 text-gray-800">{movie.Title}</h2>

@@ -10,11 +10,7 @@ export const metadata: Metadata = {
   description: 'Search for movies using the OMDb API',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>

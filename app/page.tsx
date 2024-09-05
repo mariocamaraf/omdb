@@ -25,7 +25,7 @@ const INITIAL_MOVIES = gql`
 
 export default async function Home() {
   const { data } = await getClient().query({ query: INITIAL_MOVIES })
-  
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <MovieList initialMovies={data.searchMovies.Search} />

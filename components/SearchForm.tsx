@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/Button"
-import { Input } from "@/components/ui/Input"
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Search } from 'lucide-react'
 import { FormEvent } from 'react'
 import { FilterState } from './MovieList'
 import SuggestionsList from './SuggestionsList'
-import { useDebounce } from "@/hooks/useDebounce"
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface SearchFormProps {
   filters: FilterState
@@ -26,7 +26,7 @@ export default function SearchForm({
   onFilterChange,
   onSearch,
   onSuggestionSelect,
-  onDebouncedSearchChange
+  onDebouncedSearchChange,
 }: SearchFormProps) {
   const [localTitle, setLocalTitle] = useState(filters.title)
   const debouncedSearchTerm = useDebounce(localTitle, 300)

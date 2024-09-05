@@ -1,9 +1,9 @@
 'use client'
 
-import { Button } from "@/components/ui/Button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/Command"
-import { Input } from "@/components/ui/Input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from '@/components/ui/Button'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/Command'
+import { Input } from '@/components/ui/Input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
@@ -26,27 +26,17 @@ export default function MovieSearch() {
     <form onSubmit={handleSearch} className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
       <Popover open={openTitle} onOpenChange={setOpenTitle}>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={openTitle}
-            className="w-full justify-between"
-          >
-            {title || "Search by title"}
+          <Button variant="outline" role="combobox" aria-expanded={openTitle} className="w-full justify-between">
+            {title || 'Search by title'}
             <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandInput 
-              placeholder="Search title..." 
-              onValueChange={setTitle}
-            />
+            <CommandInput placeholder="Search title..." onValueChange={setTitle} />
             <CommandEmpty>No title found.</CommandEmpty>
             <CommandGroup>
-              <CommandItem onSelect={() => setOpenTitle(false)}>
-                {title}
-              </CommandItem>
+              <CommandItem onSelect={() => setOpenTitle(false)}>{title}</CommandItem>
             </CommandGroup>
           </Command>
         </PopoverContent>
@@ -62,7 +52,9 @@ export default function MovieSearch() {
         />
       </div>
 
-      <Button type="submit" className="w-full">Search</Button>
+      <Button type="submit" className="w-full">
+        Search
+      </Button>
     </form>
   )
 }

@@ -6,13 +6,16 @@ import { FormEvent, useEffect, useState, Suspense } from 'react'
 import dynamic from 'next/dynamic'
 
 // Update the dynamic imports with proper typing
-const MovieCard = dynamic(() => import('./MovieCard').then(mod => mod.MovieCard), {
+const MovieCard = dynamic(() => import('./MovieCard').then((mod) => mod.MovieCard), {
   loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg"></div>,
 })
 
-const SearchForm = dynamic(() => import('./SearchForm').then(mod => mod.default), {
+const SearchForm = dynamic(() => import('./SearchForm').then((mod) => mod.default), {
   loading: () => <div className="h-16 bg-gray-200 animate-pulse rounded-lg mb-8"></div>,
 })
+
+const numbers = [1, 2, 3]
+const numbers2 = [1, 2, 3, 4]
 
 export type Movie = {
   imdbID: string
@@ -56,23 +59,30 @@ const GET_SUGGESTIONS = gql`
 `
 
 export default function MovieList({ initialMovies }: { initialMovies: Movie[] }) {
-  const [filters, setFilters] = useState<FilterState>({ title: 'inception', year: '' })
+  const [filters, setFilters] = useState<FilterState>({
+    title: 'inception',
+    year: '',
+  })
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [debouncedTitle, setDebouncedTitle] = useState('')
   const [page, setPage] = useState(1)
 
-  const { data, loading, error, fetchMore } = useQuery<{ searchMovies: SearchResult }>(SEARCH_MOVIES, {
+  const { data, loading, error, fetchMore } = useQuery<{
+    searchMovies: SearchResult
+  }>(SEARCH_MOVIES, {
     variables: { title: filters.title, year: filters.year, page },
-    skip: !filters.title
+    skip: !filters.title,
   })
 
-  const { data: suggestionData, loading: suggestionsLoading } = useQuery<{ suggestions: string[] }>(GET_SUGGESTIONS, {
+  const { data: suggestionData, loading: suggestionsLoading } = useQuery<{
+    suggestions: string[]
+  }>(GET_SUGGESTIONS, {
     variables: { value: debouncedTitle },
-    skip: debouncedTitle.length < 2
+    skip: debouncedTitle.length < 2,
   })
 
   const handleFilterChange = (field: keyof FilterState, value: string) => {
-    setFilters(prev => ({ ...prev, [field]: value }))
+    setFilters((prev) => ({ ...prev, [field]: value }))
     if (field === 'title') {
       setShowSuggestions(true)
     }
@@ -86,7 +96,7 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
   }
 
   const handleSuggestionSelect = (title: string) => {
-    setFilters(prev => ({ ...prev, title }))
+    setFilters((prev) => ({ ...prev, title }))
     setShowSuggestions(false)
     setPage(1) // Reset page when selecting a suggestion
   }
@@ -105,10 +115,10 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
           return {
             searchMovies: {
               ...fetchMoreResult.searchMovies,
-              Search: [...prev.searchMovies.Search, ...fetchMoreResult.searchMovies.Search]
-            }
+              Search: [...prev.searchMovies.Search, ...fetchMoreResult.searchMovies.Search],
+            },
           }
-        }
+        },
       })
       setPage(nextPage)
     }
