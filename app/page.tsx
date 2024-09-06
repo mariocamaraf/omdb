@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
 const MovieList = dynamic(() => import('@/components/MovieList'), {
-  loading: () => <p>Loading...</p>,
+  suspense: true,
 })
 
 const INITIAL_MOVIES = gql`
