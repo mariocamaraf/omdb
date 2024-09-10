@@ -36,7 +36,7 @@ export type FilterState = {
   year: string
 }
 
-const SEARCH_MOVIES = gql`
+export const SEARCH_MOVIES = gql`
   query SearchMovies($title: String!, $year: String, $page: Int) {
     searchMovies(title: $title, year: $year, page: $page) {
       Search {
