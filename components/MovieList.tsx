@@ -1,21 +1,18 @@
 'use client'
 
 import { gql, useQuery } from '@apollo/client'
-import { Loader2 } from 'lucide-react'
-import { FormEvent, useEffect, useState, Suspense } from 'react'
+import { Loader2, Moon, Sun } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
 
-// Update the dynamic imports with proper typing
 const MovieCard = dynamic(() => import('./MovieCard').then((mod) => mod.MovieCard), {
-  loading: () => <div className="h-64 bg-gray-200 animate-pulse rounded-lg"></div>,
+  loading: () => <div className="h-64 bg-background-light dark:bg-background-dark animate-pulse rounded-lg"></div>,
 })
 
 const SearchForm = dynamic(() => import('./SearchForm').then((mod) => mod.default), {
-  loading: () => <div className="h-16 bg-gray-200 animate-pulse rounded-lg mb-8"></div>,
+  loading: () => <div className="h-16 bg-background-light dark:bg-background-dark animate-pulse rounded-lg mb-8"></div>,
 })
-
-const numbers = [1, 2, 3]
-const numbers2 = [1, 2, 3, 4]
 
 export type Movie = {
   imdbID: string
@@ -66,12 +63,15 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [debouncedTitle, setDebouncedTitle] = useState('')
   const [page, setPage] = useState(1)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const { ref, inView } = useInView()
 
   const { data, loading, error, fetchMore } = useQuery<{
     searchMovies: SearchResult
   }>(SEARCH_MOVIES, {
     variables: { title: filters.title, year: filters.year, page },
     skip: !filters.title,
+    notifyOnNetworkStatusChange: true,
   })
 
   const { data: suggestionData, loading: suggestionsLoading } = useQuery<{
@@ -81,48 +81,52 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
     skip: debouncedTitle.length < 2,
   })
 
-  const handleFilterChange = (field: keyof FilterState, value: string) => {
+  const handleFilterChange = useCallback((field: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [field]: value }))
     if (field === 'title') {
       setShowSuggestions(true)
     }
-    setPage(1) // Reset page when filters change
-  }
+    setPage(1)
+  }, [])
 
-  const handleSearch = (e: FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault()
     setShowSuggestions(false)
-    setPage(1) // Reset page on new search
-  }
+    setPage(1)
+  }, [])
 
-  const handleSuggestionSelect = (title: string) => {
+  const handleSuggestionSelect = useCallback((title: string) => {
     setFilters((prev) => ({ ...prev, title }))
     setShowSuggestions(false)
-    setPage(1) // Reset page when selecting a suggestion
-  }
+    setPage(1)
+  }, [])
 
-  const handleDebouncedSearchChange = (value: string) => {
+  const handleDebouncedSearchChange = useCallback((value: string) => {
     setDebouncedTitle(value)
-  }
+  }, [])
 
-  const loadMore = () => {
+  const loadMore = useCallback(() => {
     if (data && data.searchMovies.totalResults && page * 10 < parseInt(data.searchMovies.totalResults)) {
       const nextPage = page + 1
       fetchMore({
         variables: { page: nextPage },
         updateQuery: (prev, { fetchMoreResult }) => {
-          if (!fetchMoreResult) return prev
+          if (!fetchMoreResult || !fetchMoreResult.searchMovies) return prev
+
+          const prevSearchMovies = prev.searchMovies || { Search: [] }
+          const fetchMoreSearchMovies = fetchMoreResult.searchMovies || { Search: [] }
+
           return {
             searchMovies: {
-              ...fetchMoreResult.searchMovies,
-              Search: [...prev.searchMovies.Search, ...fetchMoreResult.searchMovies.Search],
+              ...fetchMoreSearchMovies,
+              Search: [...prevSearchMovies.Search, ...fetchMoreSearchMovies.Search],
             },
           }
         },
       })
       setPage(nextPage)
     }
-  }
+  }, [data, fetchMore, page])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -134,12 +138,37 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
 
-  const movies = data?.searchMovies.Search || initialMovies
+  useEffect(() => {
+    if (inView) {
+      loadMore()
+    }
+  }, [inView, loadMore])
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'))
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }, [theme])
+
+  const movies = useMemo(() => data?.searchMovies.Search || initialMovies, [data, initialMovies])
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Movie Database</h1>
-      <Suspense fallback={<div className="h-16 bg-gray-200 animate-pulse rounded-lg mb-8"></div>}>
+    <div
+      className={`min-h-screen bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark ${theme === 'dark' ? 'dark' : ''}`}
+    >
+      <div className="container mx-auto p-4 max-w-4xl transition-colors duration-200 ease-in-out">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Movie Database</h1>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-primary hover:bg-opacity-10 dark:hover:bg-primary-dark dark:hover:bg-opacity-10 transition-colors duration-200 ease-in-out"
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'dark' ? <Sun className="h-6 w-6 text-accent" /> : <Moon className="h-6 w-6 text-primary" />}
+          </button>
+        </div>
         <SearchForm
           filters={filters}
           showSuggestions={showSuggestions}
@@ -149,39 +178,32 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
           onSuggestionSelect={handleSuggestionSelect}
           onDebouncedSearchChange={handleDebouncedSearchChange}
         />
-      </Suspense>
 
-      {loading && page === 1 ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-4 animate-spin text-blue-500" />
-        </div>
-      ) : error ? (
-        <div className="text-center text-red-500">An error occurred while fetching movies.</div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {movies.map((movie) => (
-              <Suspense key={movie.imdbID} fallback={<div className="h-64 bg-gray-200 animate-pulse rounded-lg"></div>}>
-                <MovieCard movie={movie} />
-              </Suspense>
-            ))}
+        {loading && page === 1 ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary dark:text-primary-dark" />
           </div>
-          {data && data.searchMovies.totalResults && page * 10 < parseInt(data.searchMovies.totalResults) && (
-            <div className="mt-8 text-center">
-              <button
-                onClick={loadMore}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                disabled={loading}
-              >
-                {loading ? 'Loading...' : 'Load More'}
-              </button>
+        ) : error ? (
+          <div className="text-center text-red-500 dark:text-red-400">An error occurred while fetching movies.</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {movies.map((movie) => (
+                <MovieCard key={movie.imdbID} movie={movie} />
+              ))}
             </div>
-          )}
-        </>
-      )}
-      {movies.length === 0 && filters.title && (
-        <div className="text-center text-gray-500 mt-8">No movies found matching your criteria.</div>
-      )}
+            {loading && page > 1 && (
+              <div className="flex justify-center items-center h-24">
+                <Loader2 className="h-8 w-8 animate-spin text-primary dark:text-primary-dark" />
+              </div>
+            )}
+            <div ref={ref} className="h-10" />
+          </>
+        )}
+        {movies.length === 0 && filters.title && (
+          <div className="text-center mt-8">No movies found matching your criteria.</div>
+        )}
+      </div>
     </div>
   )
 }
