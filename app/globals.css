@@ -4,66 +4,32 @@
 
 :root {
   --background: 255, 255, 255;
-  --foreground: 31, 41, 55;
+  --foreground: 17, 24, 39;
   --primary: 59, 130, 246;
-  --secondary: 16, 185, 129;
+  --primary-dark: 37, 99, 235;
+  --secondary: 107, 114, 128;
+  --secondary-dark: 75, 85, 99;
   --accent: 245, 158, 11;
+  --accent-dark: 217, 119, 6;
 }
 
 .dark {
-  --background: 31, 41, 55;
+  --background: 17, 24, 39;
   --foreground: 249, 250, 251;
   --primary: 37, 99, 235;
-  --secondary: 5, 150, 105;
+  --primary-dark: 59, 130, 246;
+  --secondary: 75, 85, 99;
+  --secondary-dark: 107, 114, 128;
   --accent: 217, 119, 6;
+  --accent-dark: 245, 158, 11;
 }
 
 @layer base {
   body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    @apply bg-background;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-secondary rounded-full;
+    @apply bg-background text-foreground dark:bg-background dark:text-foreground;
   }
 }
 
 html {
-  scroll-behavior: smooth;
-}
-
-@layer base {
-  *:focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
-  }
-}
-
-@layer components {
-  .card {
-    @apply bg-background shadow-card hover:shadow-card-hover dark:shadow-dark-card dark:hover:shadow-dark-card-hover transition-shadow duration-300 rounded-lg overflow-hidden;
-  }
+  @apply dark;
 }

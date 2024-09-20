@@ -66,7 +66,7 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [debouncedTitle, setDebouncedTitle] = useState('')
   const [page, setPage] = useState(1)
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true)
   const { ref, inView } = useInView()
 

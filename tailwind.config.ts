@@ -14,15 +14,15 @@ const config: Config = {
         foreground: 'rgb(var(--foreground))',
         primary: {
           DEFAULT: 'rgb(var(--primary))',
-          dark: 'rgb(var(--primary))',
+          dark: 'rgb(var(--primary-dark))',
         },
         secondary: {
           DEFAULT: 'rgb(var(--secondary))',
-          dark: 'rgb(var(--secondary))',
+          dark: 'rgb(var(--secondary-dark))',
         },
         accent: {
           DEFAULT: 'rgb(var(--accent))',
-          dark: 'rgb(var(--accent))',
+          dark: 'rgb(var(--accent-dark))',
         },
       },
       boxShadow: {
