@@ -6,7 +6,7 @@ import { MovieCard } from '../../components/MovieCard'
 const mockMovie = {
   imdbID: '123',
   Title: 'Test Movie',
-  Year: '2023',
+  Year: '2024',
   Type: 'movie',
   Poster: 'test-poster.jpg',
 }

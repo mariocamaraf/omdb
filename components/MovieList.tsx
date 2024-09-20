@@ -249,7 +249,7 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
       </div>
       <footer className="bg-primary text-white py-4 mt-8">
         <div className="container mx-auto text-center">
-          <p>© 2023 Movie Database. All rights reserved.</p>
+          <p>© 2024 Movie Database. All rights reserved.</p>
           <p className="mt-2">
             <Info className="inline-block mr-1" size={16} />
             This project is for demonstration purposes only.
