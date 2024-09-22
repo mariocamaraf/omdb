@@ -52,6 +52,22 @@ export const SEARCH_MOVIES = gql`
   }
 `
 
+export const GET_TRENDING_MOVIES = gql`
+  query GetTrendingMovies($page: Int) {
+    trendingMovies(page: $page) {
+      Search {
+        imdbID
+        Title
+        Year
+        Type
+        Poster
+      }
+      totalResults
+      Response
+    }
+  }
+`
+
 const GET_SUGGESTIONS = gql`
   query GetSuggestions($value: String!) {
     suggestions(value: $value)
@@ -60,7 +76,7 @@ const GET_SUGGESTIONS = gql`
 
 export default function MovieList({ initialMovies }: { initialMovies: Movie[] }) {
   const [filters, setFilters] = useState<FilterState>({
-    title: 'inception',
+    title: '',
     year: '',
   })
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -70,11 +86,31 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true)
   const { ref, inView } = useInView()
 
-  const { data, loading, error, fetchMore } = useQuery<{
+  const isSearching = filters.title !== '' || filters.year !== ''
+
+  const {
+    data: searchData,
+    loading: searchLoading,
+    error: searchError,
+    fetchMore: searchFetchMore,
+  } = useQuery<{
     searchMovies: SearchResult
   }>(SEARCH_MOVIES, {
     variables: { title: filters.title, year: filters.year, page },
-    skip: !filters.title,
+    skip: !isSearching,
+    notifyOnNetworkStatusChange: true,
+  })
+
+  const {
+    data: trendingData,
+    loading: trendingLoading,
+    error: trendingError,
+    fetchMore: trendingFetchMore,
+  } = useQuery<{
+    trendingMovies: SearchResult
+  }>(GET_TRENDING_MOVIES, {
+    variables: { page },
+    skip: isSearching,
     notifyOnNetworkStatusChange: true,
   })
 
@@ -114,27 +150,39 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
   }, [])
 
   const loadMore = useCallback(() => {
-    if (data && data.searchMovies.totalResults && page * 10 < parseInt(data.searchMovies.totalResults)) {
+    const currentData = isSearching ? searchData?.searchMovies : trendingData?.trendingMovies
+    if (currentData && currentData.totalResults && page * 10 < parseInt(currentData.totalResults)) {
       const nextPage = page + 1
-      fetchMore({
-        variables: { page: nextPage },
-        updateQuery: (prev, { fetchMoreResult }) => {
-          if (!fetchMoreResult || !fetchMoreResult.searchMovies) return prev
-
-          const prevSearchMovies = prev.searchMovies || { Search: [] }
-          const fetchMoreSearchMovies = fetchMoreResult.searchMovies || { Search: [] }
-
-          return {
-            searchMovies: {
-              ...fetchMoreSearchMovies,
-              Search: [...prevSearchMovies.Search, ...fetchMoreSearchMovies.Search],
-            },
-          }
-        },
-      })
+      if (isSearching) {
+        searchFetchMore({
+          variables: { page: nextPage },
+          updateQuery: (prev, { fetchMoreResult }) => {
+            if (!fetchMoreResult) return prev
+            return {
+              searchMovies: {
+                ...fetchMoreResult.searchMovies,
+                Search: [...prev.searchMovies.Search, ...fetchMoreResult.searchMovies.Search],
+              },
+            }
+          },
+        })
+      } else {
+        trendingFetchMore({
+          variables: { page: nextPage },
+          updateQuery: (prev, { fetchMoreResult }) => {
+            if (!fetchMoreResult) return prev
+            return {
+              trendingMovies: {
+                ...fetchMoreResult.trendingMovies,
+                Search: [...prev.trendingMovies.Search, ...fetchMoreResult.trendingMovies.Search],
+              },
+            }
+          },
+        })
+      }
       setPage(nextPage)
     }
-  }, [data, fetchMore, page])
+  }, [isSearching, searchData, trendingData, searchFetchMore, trendingFetchMore, page])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -164,7 +212,16 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
-  const movies = useMemo(() => data?.searchMovies.Search || initialMovies, [data, initialMovies])
+  const movies = useMemo(() => {
+    if (isSearching) {
+      return searchData?.searchMovies.Search || []
+    } else {
+      return trendingData?.trendingMovies.Search || initialMovies
+    }
+  }, [isSearching, searchData, trendingData, initialMovies])
+
+  const loading = isSearching ? searchLoading : trendingLoading
+  const error = isSearching ? searchError : trendingError
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -215,6 +272,8 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
           onDebouncedSearchChange={handleDebouncedSearchChange}
         />
 
+        <h2 className="text-2xl font-semibold mb-4">{isSearching ? 'Search Results' : 'Trending Movies'}</h2>
+
         {loading && page === 1 ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -243,7 +302,7 @@ export default function MovieList({ initialMovies }: { initialMovies: Movie[] })
             <div ref={ref} className="h-10" />
           </>
         )}
-        {movies.length === 0 && filters.title && (
+        {movies.length === 0 && isSearching && (
           <div className="text-center mt-8">No movies found matching your criteria.</div>
         )}
       </div>

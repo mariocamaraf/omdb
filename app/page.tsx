@@ -7,9 +7,9 @@ const MovieList = dynamic(() => import('@/components/MovieList'), {
   suspense: true,
 })
 
-const INITIAL_MOVIES = gql`
-  query InitialMovies {
-    searchMovies(title: "inception", page: 1) {
+const INITIAL_TRENDING_MOVIES = gql`
+  query InitialTrendingMovies {
+    trendingMovies(page: 1) {
       Search {
         imdbID
         Title
@@ -24,11 +24,11 @@ const INITIAL_MOVIES = gql`
 `
 
 export default async function Home() {
-  const { data } = await getClient().query({ query: INITIAL_MOVIES })
+  const { data } = await getClient().query({ query: INITIAL_TRENDING_MOVIES })
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <MovieList initialMovies={data.searchMovies.Search} />
+      <MovieList initialMovies={data.trendingMovies.Search} />
     </Suspense>
   )
 }

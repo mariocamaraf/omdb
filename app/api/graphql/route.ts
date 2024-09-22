@@ -5,6 +5,8 @@ import fetch from 'node-fetch'
 
 const OMDB_API_KEY = process.env.OMDB_API_KEY
 const OMDB_API_URL = 'http://www.omdbapi.com/'
+const TMDB_API_KEY = process.env.TMDB_API_KEY
+const TMDB_API_URL = 'https://api.themoviedb.org/3'
 
 // Defining GraphQL schema
 const typeDefs = gql`
@@ -24,6 +26,7 @@ const typeDefs = gql`
 
   type Query {
     searchMovies(title: String!, year: String, page: Int): SearchResult
+    trendingMovies(page: Int): SearchResult
     suggestions(value: String!): [String]
   }
 `
@@ -40,6 +43,32 @@ const resolvers = {
         return data
       } catch (error) {
         console.error('Error fetching movies:', error)
+        return { Search: [], totalResults: '0', Response: 'False' }
+      }
+    },
+    trendingMovies: async (_: any, args: { page?: number }) => {
+      try {
+        const page = args.page || 1
+        const tmdbResponse = await fetch(`${TMDB_API_URL}/trending/movie/week?api_key=${TMDB_API_KEY}&page=${page}`)
+        const tmdbData = await tmdbResponse.json()
+
+        const moviePromises = tmdbData.results.map(async (movie: any) => {
+          const omdbResponse = await fetch(
+            `${OMDB_API_URL}?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(movie.title)}&y=${movie.release_date.split('-')[0]}`
+          )
+          const omdbData = await omdbResponse.json()
+          return omdbData.Response === 'True' ? omdbData : null
+        })
+
+        const movies = (await Promise.all(moviePromises)).filter(Boolean)
+
+        return {
+          Search: movies,
+          totalResults: tmdbData.total_results.toString(),
+          Response: 'True',
+        }
+      } catch (error) {
+        console.error('Error fetching trending movies:', error)
         return { Search: [], totalResults: '0', Response: 'False' }
       }
     },
